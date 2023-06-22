@@ -49,7 +49,7 @@ window.Webflow.push(() => {
         stagger: 0.1,
       }); // End: GSAP from
     }); // End: forEach
-  } // End: setupSplits
+  } // End: setupSplitTexts
 
   gsap.from('.nav_component', {
     opacity: 0,
