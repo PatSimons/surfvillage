@@ -53,6 +53,7 @@
   },
   "dependencies": {
     "@finsweet/ts-utils": "^0.39.2",
+    "@splidejs/splide": "^4.1.4",
     "gsap": "npm:@gsap/shockingly@^3.12.1"
   },
   "engines": {
