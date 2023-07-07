@@ -158,8 +158,7 @@ window.Webflow.push(() => {
 
   const teasers = gsap.utils.toArray('.teaser');
   if (teasers) {
-    //scroller.effects('.teaser_img', { lag: 0.05 });
-
+    //scroller.effects('.teaser_img', { lag: 0 });
     teasers.forEach((el: any) => {
       const blogImg = el.querySelector('.teaser_img');
       const blogSummary = el.querySelector('.blog-teaser_summary');
