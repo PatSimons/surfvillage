@@ -8,5 +8,4 @@ export const reverseDomElms = (parent: Element) => {
       parent.appendChild(child);
     });
   }
-  console.log('meh');
 };
