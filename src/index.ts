@@ -1,5 +1,6 @@
 import { gsap } from 'gsap';
 import { Flip } from 'gsap/Flip';
+import { InertiaPlugin } from 'gsap/InertiaPlugin';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
@@ -7,7 +8,7 @@ import { SplitText } from 'gsap/SplitText';
 import { convertDatesToDutchFormat } from '$utils/dutchdates';
 import { reverseDomElms } from '$utils/helpers';
 
-gsap.registerPlugin(ScrollTrigger, ScrollSmoother, SplitText, Flip);
+gsap.registerPlugin(ScrollTrigger, ScrollSmoother, SplitText, Flip, InertiaPlugin);
 
 // const chromeAgent =
 //   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36';
@@ -21,9 +22,32 @@ gsap.registerPlugin(ScrollTrigger, ScrollSmoother, SplitText, Flip);
 //   : 'https://cdn.jsdelivr.net/gh/PatSimons/surfvillage/dist/index.js';
 // script.defer = true;
 // document.currentScript?.insertAdjacentElement('afterend', script);
+import { Draggable } from 'gsap/Draggable';
+gsap.registerPlugin(Draggable);
 
 window.Webflow ||= [];
 window.Webflow.push(() => {
+  const drag = document.querySelector('[cs-el="draggable"]');
+  const dragWrap = document.querySelector('[cs-el="draggable-wrap"]');
+  const dragItems = gsap.utils.toArray('[cs-el="draggable-item"]');
+
+  const dragWidth = drag?.clientWidth;
+  const dragItemsLength = dragItems.length;
+
+  console.log(dragWidth);
+  console.log(dragItemsLength);
+
+  if (drag) {
+    Draggable.create(drag, {
+      type: 'x',
+      bounds: dragWrap,
+      inertia: true,
+      onDragEnd: function () {},
+      snap: {
+        x: gsap.utils.snap(dragWidth / dragItemsLength),
+      },
+    });
+  }
   // Setup Match Media
   const mm = gsap.matchMedia(),
     breakPoint = 800;
@@ -208,87 +232,7 @@ window.Webflow.push(() => {
       }
       // End: grids
 
-      function setup() {
-        // Hero Timeline
-        const pageHeroBG = document.querySelector('[cs-el="hero"]');
-        if (pageHeroBG) {
-          const pageHeroImg = pageHeroBG?.querySelector('[cs-el="hero-img"]');
-          const tl_hero = gsap.timeline();
-          tl_hero.to(pageHeroImg, {
-            autoAlpha: 1,
-            duration: 1,
-          });
-        }
-        // End: hero Timeline
-        // On load triggers
-        const onLoadTriggers = gsap.utils.toArray('[cs-t="onload"]');
-        if (onLoadTriggers) {
-          onLoadTriggers.forEach((el: any) => {
-            gsap.from(el, { autoAlpha: 0, y: '1rem', duration: 0.75 });
-          });
-        }
-      } // End: setup()
-
-      // Border Radius
-      const elmsBorderRadius = gsap.utils.toArray('[cs-borderradius]');
-      if (elmsBorderRadius) {
-        elmsBorderRadius.forEach((el: any) => {
-          const targetElement = el;
-          const triggerElement = targetElement;
-          gsap.from(targetElement, {
-            width: '85%',
-            borderRadius: '5rem',
-            scrollTrigger: {
-              trigger: triggerElement,
-              start: 'top bottom',
-              end: 'top 70%',
-              ease: 'expo.in',
-              scrub: true,
-              invalidateOnRefresh: true,
-            },
-          });
-        });
-      }
-      // End: Border Radius
-
-      // Blog Category Filter String Replace
-      const filterCatLink = document.querySelector(
-        '[cs-el="filter-cat-link"]'
-      ) as HTMLAnchorElement;
-      if (filterCatLink) {
-        const href = filterCatLink.getAttribute('href');
-        if (href) {
-          const newhref = href.replace(/&/g, '%26').replace(/ /g, '+');
-          filterCatLink.setAttribute('href', newhref);
-        }
-      }
-      // End: Blog Category Filter String Replace
-
-      // Batch Fade in Col Lists
-      if (document.querySelector('[cs-tr="batch-in"]')) {
-        const activityDetails: string[] = gsap.utils.toArray('[cs-tr="batch-in"]');
-        ScrollTrigger.batch(activityDetails, {
-          onEnter: (batch) =>
-            gsap.from(batch, { y: '50px', autoAlpha: 0, duration: 1, stagger: 0.1 }),
-        });
-      }
-      if (document.querySelector('[cs-tr="scroll-in"]')) {
-        const scrollInElms: string[] = gsap.utils.toArray('[cs-tr="scroll-in"]');
-        scrollInElms.forEach((el: any) => {
-          gsap.from(el, {
-            opacity: 0,
-            y: '50px',
-            scrollTrigger: {
-              trigger: el,
-              start: 'top bottom',
-              end: 'bottom 90%',
-              scrub: true,
-              markers: false,
-              invalidateOnRefresh: true,
-            },
-          });
-        });
-      }
+      // Teasers
       const teasers = gsap.utils.toArray('[cs-el="teaser"]');
       if (teasers) {
         teasers.forEach((el: any) => {
@@ -327,68 +271,149 @@ window.Webflow.push(() => {
           el.addEventListener('mouseenter', () => hover.timeScale(1).play());
           el.addEventListener('mouseleave', () => hover.timeScale(1.75).reverse());
         });
-      } // End if
+      } // End: if (teasers)
       // End: Teasers
 
-      // Marquees
-      const marquees = document.querySelectorAll<HTMLElement>('[cs-el="marquee"]');
-      if (marquees) {
-        marquees.forEach((marquee) => {
-          const marqueeType = marquee?.getAttribute('cs-marquee-type');
-          const marqueeDirection = marquee?.getAttribute('cs-marquee-direction');
-          const duration = 100;
-          const marqueeContent = marquee.querySelector('[cs-el="marquee-content"]');
-          if (!marqueeContent) {
-            console.log('No marquee content present!');
-            return;
-          }
-          const marqueeContentClone = marqueeContent.cloneNode(true);
-          marquee.append(marqueeContentClone);
-
-          let tween: any;
-          const progress = tween ? tween.progress() : 0;
-          tween && tween.progress(0).kill();
-          const width = parseInt(getComputedStyle(marqueeContent).getPropertyValue('width'), 10);
-          const distanceToTranslate = -width / (marqueeType === 'scroll' ? 8 : 1);
-
-          let startPoint = 0;
-          let endPoint = distanceToTranslate;
-          if (marqueeDirection === 'right') {
-            startPoint = distanceToTranslate;
-            endPoint = 0;
-          }
-          if (marqueeType === 'scroll') {
-            tween = gsap.fromTo(
-              marquee.children,
-              { x: startPoint },
-              {
-                x: endPoint,
-                duration,
-                scrollTrigger: {
-                  trigger: marqueeContent,
-                  scrub: true,
-                  start: 'top bottom',
-                  end: 'bottom top',
-                  invalidateOnRefresh: true,
-                },
-              }
-            );
-          }
-          if (marqueeType === 'loop') {
-            tween = gsap.fromTo(
-              marquee.children,
-              { x: startPoint },
-              {
-                x: endPoint,
-                duration,
-                repeat: -1,
-              }
-            );
-          }
-          tween.progress(progress);
+      // Hero Timeline
+      const pageHeroBG = document.querySelector('[cs-el="hero"]');
+      if (pageHeroBG) {
+        //console.log('gherohere');
+        const pageHeroImg = pageHeroBG?.querySelector('[cs-el="hero-img"]');
+        gsap.to(pageHeroImg, {
+          autoAlpha: 1,
+          duration: 1,
         });
       }
-      // End: Marquees
+      // End: hero Timeline
+
+      function setup() {
+        // On load triggers
+        const onLoadTriggers = gsap.utils.toArray('[cs-t="onload"]');
+        if (onLoadTriggers) {
+          onLoadTriggers.forEach((el: any) => {
+            gsap.from(el, { autoAlpha: 0, y: '1rem', duration: 0.75 });
+          });
+        }
+        // Marquees
+        const marquees = document.querySelectorAll<HTMLElement>('[cs-el="marquee"]');
+        if (marquees) {
+          marquees.forEach((marquee) => {
+            const marqueeType = marquee?.getAttribute('cs-marquee-type');
+            const marqueeDirection = marquee?.getAttribute('cs-marquee-direction');
+            const duration = 100;
+            const marqueeContent = marquee.querySelector('[cs-el="marquee-content"]');
+            if (!marqueeContent) {
+              console.log('No marquee content present!');
+              return;
+            }
+            const marqueeContentClone = marqueeContent.cloneNode(true);
+            marquee.append(marqueeContentClone);
+
+            let tween: any;
+            const progress = tween ? tween.progress() : 0;
+            tween && tween.progress(0).kill();
+            const width = parseInt(getComputedStyle(marqueeContent).getPropertyValue('width'), 10);
+            const distanceToTranslate = -width / (marqueeType === 'scroll' ? 8 : 1);
+
+            let startPoint = 0;
+            let endPoint = distanceToTranslate;
+            if (marqueeDirection === 'right') {
+              startPoint = distanceToTranslate;
+              endPoint = 0;
+            }
+            if (marqueeType === 'scroll') {
+              tween = gsap.fromTo(
+                marquee.children,
+                { x: startPoint },
+                {
+                  x: endPoint,
+                  duration,
+                  scrollTrigger: {
+                    trigger: marqueeContent,
+                    scrub: true,
+                    start: 'top bottom',
+                    end: 'bottom top',
+                    invalidateOnRefresh: true,
+                  },
+                }
+              );
+            }
+            if (marqueeType === 'loop') {
+              tween = gsap.fromTo(
+                marquee.children,
+                { x: startPoint },
+                {
+                  x: endPoint,
+                  duration,
+                  repeat: -1,
+                }
+              );
+            }
+            tween.progress(progress);
+          });
+        } // End: Marquees
+      } // End: setup()
+
+      // Border Radius
+      const elmsBorderRadius = gsap.utils.toArray('[cs-borderradius]');
+      if (elmsBorderRadius) {
+        elmsBorderRadius.forEach((el: any) => {
+          const targetElement = el;
+          const triggerElement = targetElement;
+          gsap.from(targetElement, {
+            width: '85%',
+            borderRadius: '5rem',
+            scrollTrigger: {
+              trigger: triggerElement,
+              start: 'top bottom',
+              end: 'top 70%',
+              ease: 'expo.in',
+              scrub: true,
+              invalidateOnRefresh: true,
+            },
+          });
+        });
+      }
+      // End: Border Radius
+
+      // Blog Category Filter String Replace
+      const filterCatLink = document.querySelector(
+        '[cs-el="filter-cat-link"]'
+      ) as HTMLAnchorElement;
+      if (filterCatLink) {
+        const href = filterCatLink.getAttribute('href');
+        if (href) {
+          const newhref = href.replace(/&/g, '%26').replace(/ /g, '+');
+          filterCatLink.setAttribute('href', newhref);
+        }
+      }
+      // End: Blog Category Filter String Replace
+
+      // Batch Fade-In
+      const batchElms: string[] = gsap.utils.toArray('[cs-tr="batch-in"]');
+      if (batchElms) {
+        ScrollTrigger.batch(batchElms, {
+          onEnter: (batch) => gsap.to(batch, { y: '0px', autoAlpha: 1, duration: 1, stagger: 0.1 }),
+        });
+      } // End: Batch Fade-In
+
+      if (document.querySelector('[cs-tr="scroll-in"]')) {
+        const scrollInElms: string[] = gsap.utils.toArray('[cs-tr="scroll-in"]');
+        scrollInElms.forEach((el: any) => {
+          gsap.from(el, {
+            opacity: 0,
+            y: '50px',
+            scrollTrigger: {
+              trigger: el,
+              start: 'top bottom',
+              end: 'bottom 90%',
+              scrub: true,
+              markers: false,
+              invalidateOnRefresh: true,
+            },
+          });
+        });
+      }
 
       // Waves
       const waves = document.querySelectorAll('[cs-el="wave"]');
@@ -581,9 +606,13 @@ window.Webflow.push(() => {
 
       // End: FS Img test
 
-      window.addEventListener('resize', setup);
-      window.addEventListener('load', setup);
-      //return () => {};
+      window.addEventListener('resize', () => {
+        setup();
+      });
+      window.addEventListener('load', () => {
+        setup();
+      });
+      return () => {};
     } // End: MM Context
   ); // End: Setup Match Media
 }); // End: WF Push
