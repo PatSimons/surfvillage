@@ -1,4 +1,5 @@
 import { gsap } from 'gsap';
+import { Draggable } from 'gsap/Draggable';
 import { Flip } from 'gsap/Flip';
 import { InertiaPlugin } from 'gsap/InertiaPlugin';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
@@ -8,7 +9,7 @@ import { SplitText } from 'gsap/SplitText';
 import { convertDatesToDutchFormat } from '$utils/dutchdates';
 import { reverseDomElms } from '$utils/helpers';
 
-gsap.registerPlugin(ScrollTrigger, ScrollSmoother, SplitText, Flip, InertiaPlugin);
+gsap.registerPlugin(ScrollTrigger, ScrollSmoother, SplitText, Flip, InertiaPlugin, Draggable);
 
 // const chromeAgent =
 //   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36';
@@ -22,32 +23,48 @@ gsap.registerPlugin(ScrollTrigger, ScrollSmoother, SplitText, Flip, InertiaPlugi
 //   : 'https://cdn.jsdelivr.net/gh/PatSimons/surfvillage/dist/index.js';
 // script.defer = true;
 // document.currentScript?.insertAdjacentElement('afterend', script);
-import { Draggable } from 'gsap/Draggable';
-gsap.registerPlugin(Draggable);
 
-window.Webflow ||= [];
-window.Webflow.push(() => {
-  const drag = document.querySelector('[cs-el="draggable"]');
-  const dragWrap = document.querySelector('[cs-el="draggable-wrap"]');
-  const dragItems = gsap.utils.toArray('[cs-el="draggable-item"]');
+//// Functions
+// Function - Draggable Slider
+function initDraggable(el: any) {
+  const draggable = el.querySelector('[cs-tr="draggable"]');
+  const dragContent = el.querySelector('[cs-tr="drag-content"]');
+  const dragItems = el.querySelectorAll('[cs-tr="draggable-item"]');
+  const dragItemGap = 32; // 2rem set in WF
+  const dragItemWidth = 240; // 15rem set in WF
 
-  const dragWidth = drag?.clientWidth;
-  const dragItemsLength = dragItems.length;
-
-  console.log(dragWidth);
-  console.log(dragItemsLength);
-
-  if (drag) {
-    Draggable.create(drag, {
+  const dragVarsStretch = draggable.getAttribute('cs-draggable-stretch');
+  const dragWidth = dragContent?.offsetWidth;
+  const dragWrapWidth = draggable?.offsetWidth;
+  const dragTotalItems = dragItems.length;
+  const dragTotalGaps = dragTotalItems - 1;
+  const dragSnap = (dragWidth - dragTotalGaps * dragItemGap) / dragTotalItems + dragItemGap;
+  if (dragVarsStretch === 'stretch') {
+    const isWider =
+      dragWrapWidth >= dragTotalItems * dragItemWidth + dragTotalGaps * dragItemGap ? true : false;
+    if (isWider) {
+      dragItems.forEach((item: any) => {
+        item.style.width = (dragWrapWidth - dragTotalGaps * dragItemGap) / dragTotalItems + 'px';
+      });
+    }
+  }
+  if (dragContent) {
+    Draggable.create(dragContent, {
       type: 'x',
-      bounds: dragWrap,
+      bounds: draggable,
       inertia: true,
       onDragEnd: function () {},
       snap: {
-        x: gsap.utils.snap(dragWidth / dragItemsLength),
+        //        x: gsap.utils.snap(dragWidth / dragItemsLength - dragItemGap / 5),
+        x: gsap.utils.snap(dragSnap),
       },
     });
   }
+} // End: Function - Draggable Slider
+//// End: Functions
+
+window.Webflow ||= [];
+window.Webflow.push(() => {
   // Setup Match Media
   const mm = gsap.matchMedia(),
     breakPoint = 800;
@@ -67,11 +84,21 @@ window.Webflow.push(() => {
         smooth: 0.75, // how long (in seconds) it takes to "catch up" to the native scroll position
         effects: true, // looks for data-speed and data-lag attributes on elements
         smoothTouch: 0, // much shorter smoothing time on touch devices (default is NO smoothing on touch devices)
-      });
+      }); // End: Set ScrollSmoother
+
       // Dates to Dutch
       if (document.querySelector('[cs-el="date"]')) {
         convertDatesToDutchFormat('[cs-el="date"]');
-      }
+      } // End: Dates to Dutch
+
+      // Helpers
+      const reverseDomOrders = document.querySelectorAll('[cs-reversedom="true"]');
+      if (reverseDomElms) {
+        reverseDomOrders.forEach((el: any) => {
+          reverseDomElms(el);
+        });
+      } // End: Helpers
+
       // NAV
       const nav = document.querySelector('[cs-el="nav"]');
       if (nav) {
@@ -127,51 +154,59 @@ window.Webflow.push(() => {
           isOpen = false;
           showNav.timeScale(2.15).reverse();
         });
-      }
-      // End: NAV
+      } // End: NAV
 
       // Page Transition
-      const mainWrapper = document.querySelector('.main-wrapper');
+      const mainWrapper = document.querySelector<HTMLElement>('.main-wrapper');
       const exitDurationMS = 350;
       const excludedClass = 'no-transition';
-      $('a').on('click', function (e) {
-        if (
-          $(this).prop('hostname') == window.location.host &&
-          $(this).attr('href').indexOf('#') === -1 &&
-          !$(this).hasClass(excludedClass) &&
-          $(this).attr('target') !== '_blank'
-          // && transitionTrigger.length > 0
-        ) {
-          e.preventDefault();
-          $('body').addClass('overflow-hidden');
-          const transitionURL = $(this).attr('href');
-          //transitionTrigger.click();
-          gsap.to(mainWrapper, { opacity: 0, duration: 0.35 });
-          setTimeout(function () {
-            window.location = transitionURL;
-          }, exitDurationMS);
-        }
+
+      document.querySelectorAll('a').forEach((link) => {
+        link.addEventListener('click', (e) => {
+          const { hostname } = link;
+          const href = link.getAttribute('href');
+          const target = link.getAttribute('target');
+
+          if (
+            hostname === window.location.host &&
+            href &&
+            href.indexOf('#') === -1 &&
+            !link.classList.contains(excludedClass) &&
+            target !== '_blank'
+            // && transitionTrigger.length > 0
+          ) {
+            e.preventDefault();
+            document.body.classList.add('overflow-hidden');
+            const transitionURL = href;
+            // transitionTrigger.click();
+            gsap.to(mainWrapper, { opacity: 0, duration: 0.35 });
+            setTimeout(() => {
+              window.location.href = transitionURL;
+            }, exitDurationMS);
+          }
+        });
       });
+
       // On Back Button Tap
-      window.onpageshow = function (event) {
+      window.onpageshow = (event) => {
         if (event.persisted) {
           window.location.reload();
         }
       };
       // End: Page Transition
 
-      // End: On load triggers
+      // Draggable Sliders
+      const draggables = document.querySelectorAll('[cs-tr="draggable"]');
+      if (draggables.length > 0) {
+        //draggables.forEach((draggable: any) => {
+        const doc = document;
+        initDraggable(doc);
+        //});
+      } // End: Draggable Sliders
 
-      // Helpers
-      const reverseDomOrders = document.querySelectorAll('[cs-reversedom="true"]');
-      if (reverseDomElms) {
-        reverseDomOrders.forEach((el: any) => {
-          reverseDomElms(el);
-        });
-      }
       // Function SplitTexts
       const splitTexts = gsap.utils.toArray<HTMLElement>('[cs-el="splittext"]');
-      if (splitTexts) {
+      if (splitTexts.length > 0) {
         splitTexts.forEach((el) => {
           gsap.set(el, { autoAlpha: 0.15 });
 
@@ -219,7 +254,7 @@ window.Webflow.push(() => {
 
       // Grids
       const grids = document.querySelectorAll<HTMLElement>('[cs-el="grid"]');
-      if (grids) {
+      if (grids.length > 0) {
         grids.forEach((el) => {
           const countChildren = el.children.length;
           if (countChildren === 1) {
@@ -230,11 +265,11 @@ window.Webflow.push(() => {
           }
         });
       }
-      // End: grids
+      // End: Grids
 
       // Teasers
       const teasers = gsap.utils.toArray('[cs-el="teaser"]');
-      if (teasers) {
+      if (teasers.length > 0) {
         teasers.forEach((el: any) => {
           const teaserImg = el.querySelector('[cs-el="teaser-img"]');
           const teaserSummary = el.querySelector('[cs-el="teaser-summary"]');
@@ -286,73 +321,66 @@ window.Webflow.push(() => {
       }
       // End: hero Timeline
 
-      function setup() {
-        // On load triggers
-        const onLoadTriggers = gsap.utils.toArray('[cs-t="onload"]');
-        if (onLoadTriggers) {
-          onLoadTriggers.forEach((el: any) => {
-            gsap.from(el, { autoAlpha: 0, y: '1rem', duration: 0.75 });
-          });
-        }
-        // Marquees
-        const marquees = document.querySelectorAll<HTMLElement>('[cs-el="marquee"]');
-        if (marquees) {
-          marquees.forEach((marquee) => {
-            const marqueeType = marquee?.getAttribute('cs-marquee-type');
-            const marqueeDirection = marquee?.getAttribute('cs-marquee-direction');
-            const duration = 100;
-            const marqueeContent = marquee.querySelector('[cs-el="marquee-content"]');
-            if (!marqueeContent) {
-              console.log('No marquee content present!');
-              return;
-            }
-            const marqueeContentClone = marqueeContent.cloneNode(true);
-            marquee.append(marqueeContentClone);
+      // Marquees
+      const marquees = document.querySelectorAll<HTMLElement>('[cs-el="marquee"]');
+      if (marquees.length > 0) {
+        marquees.forEach((marquee) => {
+          const marqueeType = marquee?.getAttribute('cs-marquee-type');
+          const marqueeDirection = marquee?.getAttribute('cs-marquee-direction');
+          const duration = 100;
+          const marqueeContent = marquee.querySelector('[cs-el="marquee-content"]');
+          if (!marqueeContent) {
+            console.log('No marquee content present!');
+            return;
+          }
+          const marqueeContentClone = marqueeContent.cloneNode(true);
+          marquee.append(marqueeContentClone);
 
-            let tween: any;
-            const progress = tween ? tween.progress() : 0;
-            tween && tween.progress(0).kill();
-            const width = parseInt(getComputedStyle(marqueeContent).getPropertyValue('width'), 10);
-            const distanceToTranslate = -width / (marqueeType === 'scroll' ? 8 : 1);
+          let tween: any;
+          const progress = tween ? tween.progress() : 0;
+          tween && tween.progress(0).kill();
+          const width = parseInt(getComputedStyle(marqueeContent).getPropertyValue('width'), 10);
+          const distanceToTranslate = -width / (marqueeType === 'scroll' ? 8 : 1);
 
-            let startPoint = 0;
-            let endPoint = distanceToTranslate;
-            if (marqueeDirection === 'right') {
-              startPoint = distanceToTranslate;
-              endPoint = 0;
-            }
-            if (marqueeType === 'scroll') {
-              tween = gsap.fromTo(
-                marquee.children,
-                { x: startPoint },
-                {
-                  x: endPoint,
-                  duration,
-                  scrollTrigger: {
-                    trigger: marqueeContent,
-                    scrub: true,
-                    start: 'top bottom',
-                    end: 'bottom top',
-                    invalidateOnRefresh: true,
-                  },
-                }
-              );
-            }
-            if (marqueeType === 'loop') {
-              tween = gsap.fromTo(
-                marquee.children,
-                { x: startPoint },
-                {
-                  x: endPoint,
-                  duration,
-                  repeat: -1,
-                }
-              );
-            }
-            tween.progress(progress);
-          });
-        } // End: Marquees
-      } // End: setup()
+          let startPoint = 0;
+          let endPoint = distanceToTranslate;
+          if (marqueeDirection === 'right') {
+            startPoint = distanceToTranslate;
+            endPoint = 0;
+          }
+          if (marqueeType === 'scroll') {
+            tween = gsap.fromTo(
+              marquee.children,
+              { x: startPoint },
+              {
+                x: endPoint,
+                duration,
+                scrollTrigger: {
+                  trigger: marqueeContent,
+                  scrub: true,
+                  start: 'top bottom',
+                  end: 'bottom top',
+                  invalidateOnRefresh: true,
+                },
+              }
+            );
+          }
+          if (marqueeType === 'loop') {
+            tween = gsap.fromTo(
+              marquee.children,
+              { x: startPoint },
+              {
+                x: endPoint,
+                duration,
+                repeat: -1,
+              }
+            );
+          }
+          tween.progress(progress);
+        });
+      } // End: Marquees
+
+      function setup() {} // End: setup()
 
       // Border Radius
       const elmsBorderRadius = gsap.utils.toArray('[cs-borderradius]');
@@ -389,16 +417,16 @@ window.Webflow.push(() => {
       }
       // End: Blog Category Filter String Replace
 
-      // Batch Fade-In
-      const batchElms: string[] = gsap.utils.toArray('[cs-tr="batch-in"]');
+      // Scrolltrigger - Batch Fade-In
+      const batchElms: string[] = gsap.utils.toArray('[cs-st="batch-in"]');
       if (batchElms) {
         ScrollTrigger.batch(batchElms, {
           onEnter: (batch) => gsap.to(batch, { y: '0px', autoAlpha: 1, duration: 1, stagger: 0.1 }),
         });
-      } // End: Batch Fade-In
-
-      if (document.querySelector('[cs-tr="scroll-in"]')) {
-        const scrollInElms: string[] = gsap.utils.toArray('[cs-tr="scroll-in"]');
+      } // End: Scrolltrigger - Batch Fade-In
+      // Scrolltrigger - On Enter
+      if (document.querySelector('[cs-st="enter"]')) {
+        const scrollInElms: string[] = gsap.utils.toArray('[cs-st="enter"]');
         scrollInElms.forEach((el: any) => {
           gsap.from(el, {
             opacity: 0,
@@ -413,7 +441,7 @@ window.Webflow.push(() => {
             },
           });
         });
-      }
+      } // End: Scrolltrigger - On Enter
 
       // Waves
       const waves = document.querySelectorAll('[cs-el="wave"]');
@@ -549,16 +577,16 @@ window.Webflow.push(() => {
       // End: Slider
       // End: Activity Testionials
 
-      // FS Img Test
-      const fsItems = gsap.utils.toArray('[cs-el="fs-item"]');
+      // FS Img Test - Trigger
+      const fsItems = gsap.utils.toArray('[cs-tr="fs-item"]');
       const fsWrap = document.querySelector('[cs-el="fs-wrap"]');
       let lastClickedItem: HTMLElement | null = null;
 
-      if (!fsItems) return;
+      if (fsItems.length === 0) return;
       if (!fsWrap) return;
 
       function putBack() {
-        const fsContent = fsWrap.querySelector('[cs-el="fs-content"]');
+        const fsContent = fsWrap.querySelector('[cs-tr="fs-content"]');
         const state = Flip.getState(fsContent);
         lastClickedItem?.appendChild(fsContent);
 
@@ -574,7 +602,7 @@ window.Webflow.push(() => {
       }
 
       function goFullScreen(e) {
-        const fsContent = e.querySelector('[cs-el="fs-content"]');
+        const fsContent = e.querySelector('[cs-tr="fs-content"]');
         gsap.to(fsWrap, { autoAlpha: 1, duration: 0.4 });
         const state = Flip.getState(fsContent);
         fsWrap.appendChild(fsContent);
@@ -607,6 +635,8 @@ window.Webflow.push(() => {
       // End: FS Img test
 
       window.addEventListener('resize', () => {
+        const doc = document;
+        initDraggable(doc);
         setup();
       });
       window.addEventListener('load', () => {
