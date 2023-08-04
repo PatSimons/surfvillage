@@ -61,6 +61,7 @@ function initDraggable(el: any) {
     });
   }
 } // End: Function - Draggable Slider
+
 //// End: Functions
 
 window.Webflow ||= [];
@@ -104,6 +105,7 @@ window.Webflow.push(() => {
       if (nav) {
         const navType = nav.getAttribute('cs-nav-type');
         const openNav = nav.querySelector('[cs-el="open-nav"]');
+        const navMenu = nav.querySelector('[cs-el="nav-menu"]');
         const navMainMenu = nav.querySelector('[cs-el="nav-main-menu"]');
         const showNav = gsap.timeline().pause();
         const navItems = gsap.utils.toArray('.nav_mainmenu-wrap .nav_link-block');
@@ -117,29 +119,37 @@ window.Webflow.push(() => {
             scrollTrigger: {
               markers: false,
               trigger: nav,
-              start: 'top+=' + windowHeight + ' 10%',
-              end: 'top+=' + windowHeight + ' top',
+              start: 'top+=' + windowHeight + ' 35%',
+              end: 'top+=' + windowHeight + ' 15%',
               scrub: true,
             },
           });
         }
-        function toggleNav() {
-          if (isOpen) {
-            isOpen = false;
-            openNav?.addEventListener('click', () => {
-              showNav.timeScale(1.75).reverse();
-              smoother.paused(false);
-            });
-          } else {
-            isOpen = true;
-            openNav?.addEventListener('click', () => {
-              smoother.paused(true);
-              showNav.timeScale(1).play();
-            });
-          }
+        function closeNavOnClick() {
+          showNav.timeScale(1.75).reverse();
+          smoother.paused(false);
         }
+
+        function openNavOnClick() {
+          smoother.paused(true);
+          showNav.timeScale(1).play();
+        }
+
+        function toggleNav() {
+          console.log(isOpen);
+          if (!isOpen) {
+            closeNavOnClick();
+          } else {
+            openNavOnClick();
+          }
+
+          isOpen = !isOpen; // Toggle isOpen between true and false
+          openNav?.removeEventListener('click', toggleNav);
+          openNav?.addEventListener('click', toggleNav);
+        }
+
         toggleNav();
-        openNav?.addEventListener('click', toggleNav);
+        navMainMenu?.addEventListener('click', toggleNav);
 
         gsap.set(navItems, { x: '6rem', opacity: 0 });
         showNav.to(navMainMenu, { duration: 0, top: '0dvh', opacity: 0 });
@@ -149,11 +159,6 @@ window.Webflow.push(() => {
           { x: 0, opacity: 1, stagger: 0.05, duration: 0.5, ease: 'back.out' },
           '<.1'
         );
-
-        navMainMenu?.addEventListener('click', () => {
-          isOpen = false;
-          showNav.timeScale(2.15).reverse();
-        });
       } // End: NAV
 
       // Page Transition
@@ -194,6 +199,18 @@ window.Webflow.push(() => {
         }
       };
       // End: Page Transition
+      // Page - on Load
+      const onLoadElms = document.querySelectorAll('[cs-tr="onload"]');
+      if (onLoadElms) {
+        gsap.from(onLoadElms, {
+          autoAlpha: 0,
+          duration: 0.2,
+          stagger: 0.3,
+          y: '10px',
+          ease: 'power1.out',
+        });
+      }
+      // End: page - on Load
 
       // Draggable Sliders
       const draggables = document.querySelectorAll('[cs-tr="draggable"]');
@@ -506,27 +523,49 @@ window.Webflow.push(() => {
       // End: Waves
 
       // FAQs
-      // const faqs = document.querySelectorAll<HTMLElement>('[cs-el="faq"]');
-      // if (faqs) {
-      //   faqs.forEach((faq: any) => {
-      //     const faqAnswer = faq.querySelector('[cs-el="faq-answer"]');
-      //     const hover = gsap.timeline().pause();
-      //     const answerHeight = faqAnswer.offsetHeight;
-      //     gsap.set(faqAnswer, { opacity: 0 });
-      //     hover.to(faq, { duration: 1 });
-      //     hover.to(
-      //       faqAnswer,
-      //       {
-      //         opacity: 1,
-      //         ease: 'power1.out',
-      //         duration: 1,
-      //       },
-      //       '<'
-      //     );
-      //     faq.addEventListener('mouseenter', () => hover.timeScale(1).play());
-      //     faq.addEventListener('mouseleave', () => hover.timeScale(1.75).reverse());
-      //   });
-      // }
+      const faqs = document.querySelectorAll<HTMLElement>('[cs-el="faq"]');
+      if (faqs) {
+        faqs.forEach((faq) => {
+          const faqAnswer = faq.querySelector<HTMLElement>('[cs-el="faq-answer"]');
+          const faqIcon = faq.querySelector<HTMLElement>('[cs-el="faq-icon"]');
+          const hover = gsap.timeline({ paused: true });
+          const close = gsap.timeline({ paused: true });
+          const answerHeight = faqAnswer?.clientHeight ?? 0;
+          console.log(answerHeight);
+          gsap.set(faqAnswer, { height: 0 });
+          hover.to(faqIcon, { rotate: '45' });
+          hover.to(
+            faqAnswer,
+            {
+              opacity: 1,
+              height: answerHeight,
+              ease: 'power1.out',
+              marginBottom: '1rem',
+              duration: 0.5,
+            },
+            '<'
+          );
+          close.to('.is-open', {
+            opacity: 0,
+            height: answerHeight,
+            ease: 'power1.out',
+            marginBottom: '0rem',
+            duration: 0.1,
+          });
+          let isOpen = false;
+
+          faq.addEventListener('click', () => {
+            if (isOpen) {
+              isOpen = false;
+              hover.timeScale(1.5).reverse();
+            } else {
+              isOpen = true;
+              close.play();
+              hover.timeScale(1).play();
+            }
+          });
+        });
+      }
       // End: FAQs
 
       // Stamp
