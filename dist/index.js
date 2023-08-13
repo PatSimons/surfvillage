@@ -11795,10 +11795,19 @@
           marquees.forEach((marquee) => {
             const marqueeType = marquee?.getAttribute("cs-marquee-type");
             const marqueeDirection = marquee?.getAttribute("cs-marquee-direction");
+            const marqueeDrag = marquee?.getAttribute("cs-marquee-nodrag");
             const duration = 100;
             const marqueeContent = marquee.querySelector('[cs-el="marquee-content"]');
             if (!marqueeContent) {
               console.log("No marquee content present!");
+              return;
+            }
+            if (!marqueeDrag && isMobile) {
+              Draggable.create(marqueeContent, {
+                type: "x",
+                bounds: marquee,
+                inertia: true
+              });
               return;
             }
             const marqueeContentClone = marqueeContent.cloneNode(true);
