@@ -352,7 +352,7 @@ window.Webflow.push(() => {
             return;
           }
           if (!marqueeDrag && isMobile) {
-            //console.log('drag');
+            console.log('drag');
             Draggable.create(marqueeContent, {
               type: 'x',
               bounds: marquee,

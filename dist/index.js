@@ -11803,6 +11803,7 @@
               return;
             }
             if (!marqueeDrag && isMobile) {
+              console.log("drag");
               Draggable.create(marqueeContent, {
                 type: "x",
                 bounds: marquee,
