@@ -152,7 +152,7 @@ window.Webflow.push(() => {
         navMainMenu?.addEventListener('click', toggleNav);
 
         gsap.set(navItems, { x: '6rem', opacity: 0 });
-        showNav.to(navMainMenu, { duration: 0, top: '0dvh', opacity: 0 });
+        showNav.to(navMainMenu, { duration: 0, top: '0%', opacity: 0 });
         showNav.to(navMainMenu, { duration: 0.5, opacity: 1 });
         showNav.to(
           navItems,
@@ -160,6 +160,26 @@ window.Webflow.push(() => {
           '<.1'
         );
       } // End: NAV
+      // NAV Mobile FadeIn/Out
+      if (isMobile) {
+        const showAnim = gsap
+          .from(nav, {
+            yPercent: -100,
+            paused: true,
+            duration: 0.5,
+            ease: 'Power1.out',
+          })
+          .progress(1);
+
+        ScrollTrigger.create({
+          start: 'top top',
+          end: 99999,
+          onUpdate: (self) => {
+            self.direction === -1 ? showAnim.play() : showAnim.reverse();
+          },
+        });
+      }
+      // End: NAV Mobile FadeIn/Out
 
       // Page Transition
       const mainWrapper = document.querySelector<HTMLElement>('.main-wrapper');
@@ -201,7 +221,7 @@ window.Webflow.push(() => {
       // End: Page Transition
       // Page - on Load
       const onLoadElms = document.querySelectorAll('[cs-tr="onload"]');
-      if (onLoadElms) {
+      if (onLoadElms.length > 0) {
         gsap.from(onLoadElms, {
           autoAlpha: 0,
           duration: 0.2,
@@ -430,7 +450,13 @@ window.Webflow.push(() => {
         });
       }
       // End: Border Radius
-
+      // Blog Category Toggle Reset Button
+      // const catFiltersWrap = document.querySelector('.blog-category-tags-wrap');
+      // if (catFiltersWrap) {
+      //   const catFilters = catFiltersWrap.querySelectorAll('.filter_checkbox');
+      //   console.log('!!' + catFilters.length);
+      // }
+      // End: Blog Category Toggle Reset Button
       // Blog Category Filter String Replace
       const filterCatLink = document.querySelector(
         '[cs-el="filter-cat-link"]'

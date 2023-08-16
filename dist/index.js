@@ -11641,13 +11641,28 @@
           toggleNav2();
           navMainMenu?.addEventListener("click", toggleNav2);
           gsapWithCSS.set(navItems, { x: "6rem", opacity: 0 });
-          showNav.to(navMainMenu, { duration: 0, top: "0dvh", opacity: 0 });
+          showNav.to(navMainMenu, { duration: 0, top: "0%", opacity: 0 });
           showNav.to(navMainMenu, { duration: 0.5, opacity: 1 });
           showNav.to(
             navItems,
             { x: 0, opacity: 1, stagger: 0.05, duration: 0.5, ease: "back.out" },
             "<.1"
           );
+        }
+        if (isMobile) {
+          const showAnim = gsapWithCSS.from(nav, {
+            yPercent: -100,
+            paused: true,
+            duration: 0.5,
+            ease: "Power1.out"
+          }).progress(1);
+          ScrollTrigger3.create({
+            start: "top top",
+            end: 99999,
+            onUpdate: (self) => {
+              self.direction === -1 ? showAnim.play() : showAnim.reverse();
+            }
+          });
         }
         const mainWrapper = document.querySelector(".main-wrapper");
         const exitDurationMS = 350;
@@ -11674,7 +11689,7 @@
           }
         };
         const onLoadElms = document.querySelectorAll('[cs-tr="onload"]');
-        if (onLoadElms) {
+        if (onLoadElms.length > 0) {
           gsapWithCSS.from(onLoadElms, {
             autoAlpha: 0,
             duration: 0.2,
