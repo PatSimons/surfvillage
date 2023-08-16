@@ -107,10 +107,19 @@ window.Webflow.push(() => {
         const openNav = nav.querySelector('[cs-el="open-nav"]');
         const navMenu = nav.querySelector('[cs-el="nav-menu"]');
         const navMainMenu = nav.querySelector('[cs-el="nav-main-menu"]');
-        const showNav = gsap.timeline().pause();
         const navItems = gsap.utils.toArray('.nav_mainmenu-wrap .nav_link-block');
-
+        gsap.set(navItems, { x: '6rem', opacity: 0 });
         let isOpen = false;
+
+        const showNav = gsap.timeline().pause();
+        showNav.to(navMainMenu, { duration: 0, display: 'block', opacity: 0 });
+        showNav.to(navMainMenu, { duration: 0.5, opacity: 1 });
+        showNav.to(
+          navItems,
+          { x: 0, opacity: 1, stagger: 0.05, duration: 0.5, ease: 'back.out' },
+          '<.1'
+        );
+
         if (navType === 'fade-in') {
           const windowHeight = window.innerHeight;
           gsap.set(nav, { opacity: 0 });
@@ -136,30 +145,22 @@ window.Webflow.push(() => {
         }
 
         function toggleNav() {
-          console.log(isOpen);
-          if (!isOpen) {
+          console.log('is open: ' + isOpen);
+
+          if (isOpen) {
             closeNavOnClick();
           } else {
             openNavOnClick();
           }
 
           isOpen = !isOpen; // Toggle isOpen between true and false
-          openNav?.removeEventListener('click', toggleNav);
-          openNav?.addEventListener('click', toggleNav);
         }
-
-        toggleNav();
+        //console.log('am i getting crazy??');
+        //toggleNav();
         navMainMenu?.addEventListener('click', toggleNav);
-
-        gsap.set(navItems, { x: '6rem', opacity: 0 });
-        showNav.to(navMainMenu, { duration: 0, top: '0%', opacity: 0 });
-        showNav.to(navMainMenu, { duration: 0.5, opacity: 1 });
-        showNav.to(
-          navItems,
-          { x: 0, opacity: 1, stagger: 0.05, duration: 0.5, ease: 'back.out' },
-          '<.1'
-        );
+        openNav?.addEventListener('click', toggleNav);
       } // End: NAV
+
       // NAV Mobile FadeIn/Out
       if (isMobile) {
         const showAnim = gsap

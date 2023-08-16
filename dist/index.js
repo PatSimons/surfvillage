@@ -11606,24 +11606,30 @@
             smoother.paused(true);
             showNav.timeScale(1).play();
           }, toggleNav2 = function() {
-            console.log(isOpen);
-            if (!isOpen) {
+            console.log("is open: " + isOpen);
+            if (isOpen) {
               closeNavOnClick2();
             } else {
               openNavOnClick2();
             }
             isOpen = !isOpen;
-            openNav?.removeEventListener("click", toggleNav2);
-            openNav?.addEventListener("click", toggleNav2);
           };
           var closeNavOnClick = closeNavOnClick2, openNavOnClick = openNavOnClick2, toggleNav = toggleNav2;
           const navType = nav.getAttribute("cs-nav-type");
           const openNav = nav.querySelector('[cs-el="open-nav"]');
           const navMenu = nav.querySelector('[cs-el="nav-menu"]');
           const navMainMenu = nav.querySelector('[cs-el="nav-main-menu"]');
-          const showNav = gsapWithCSS.timeline().pause();
           const navItems = gsapWithCSS.utils.toArray(".nav_mainmenu-wrap .nav_link-block");
+          gsapWithCSS.set(navItems, { x: "6rem", opacity: 0 });
           let isOpen = false;
+          const showNav = gsapWithCSS.timeline().pause();
+          showNav.to(navMainMenu, { duration: 0, display: "block", opacity: 0 });
+          showNav.to(navMainMenu, { duration: 0.5, opacity: 1 });
+          showNav.to(
+            navItems,
+            { x: 0, opacity: 1, stagger: 0.05, duration: 0.5, ease: "back.out" },
+            "<.1"
+          );
           if (navType === "fade-in") {
             const windowHeight = window.innerHeight;
             gsapWithCSS.set(nav, { opacity: 0 });
@@ -11638,16 +11644,8 @@
               }
             });
           }
-          toggleNav2();
           navMainMenu?.addEventListener("click", toggleNav2);
-          gsapWithCSS.set(navItems, { x: "6rem", opacity: 0 });
-          showNav.to(navMainMenu, { duration: 0, top: "0%", opacity: 0 });
-          showNav.to(navMainMenu, { duration: 0.5, opacity: 1 });
-          showNav.to(
-            navItems,
-            { x: 0, opacity: 1, stagger: 0.05, duration: 0.5, ease: "back.out" },
-            "<.1"
-          );
+          openNav?.addEventListener("click", toggleNav2);
         }
         if (isMobile) {
           const showAnim = gsapWithCSS.from(nav, {
