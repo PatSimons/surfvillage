@@ -167,8 +167,8 @@ window.Webflow.push(() => {
           .from(nav, {
             yPercent: -100,
             paused: true,
-            duration: 0.5,
-            ease: 'Power1.out',
+            duration: 1,
+            ease: 'Power1.in',
           })
           .progress(1);
 
@@ -315,6 +315,7 @@ window.Webflow.push(() => {
           const teaserIcon = el.querySelector('[cs-el="teaser-icon"]');
           const hover = gsap.timeline().pause();
           const teaserBG = el.querySelector('[cs-el="teaser-bg"]');
+          const teaserIsClick = el?.getAttribute('cs-click');
 
           if (teaserSummary) {
             const summaryHeight = teaserSummary.offsetHeight;
@@ -341,8 +342,21 @@ window.Webflow.push(() => {
               '<'
             );
           }
-          el.addEventListener('mouseenter', () => hover.timeScale(1).play());
-          el.addEventListener('mouseleave', () => hover.timeScale(1.75).reverse());
+          console.log(teaserIsClick);
+          if (!teaserIsClick) {
+            el.addEventListener('mouseenter', () => hover.timeScale(1).play());
+            el.addEventListener('mouseleave', () => hover.timeScale(1.75).reverse());
+          } else {
+            el.addEventListener('click', function () {
+              if (!el.dataset.clicked) {
+                hover.timeScale(1).play();
+                el.setAttribute('data-clicked', 'true');
+              } else {
+                el.removeAttribute('data-clicked');
+                hover.timeScale(1.75).reverse();
+              }
+            });
+          }
         });
       } // End: if (teasers)
       // End: Teasers
@@ -437,8 +451,8 @@ window.Webflow.push(() => {
           const targetElement = el;
           const triggerElement = targetElement;
           gsap.from(targetElement, {
-            width: '85%',
-            borderRadius: '5rem',
+            width: '95%',
+            borderRadius: '6rem',
             scrollTrigger: {
               trigger: triggerElement,
               start: 'top bottom',
@@ -476,6 +490,7 @@ window.Webflow.push(() => {
       if (batchElms) {
         ScrollTrigger.batch(batchElms, {
           onEnter: (batch) => gsap.to(batch, { y: '0px', autoAlpha: 1, duration: 1, stagger: 0.1 }),
+          //onEnter: (batch) => gsap.to(batch, { y: '0px', autoAlpha: 1, duration: 1, stagger: 0.1 }),
         });
       } // End: Scrolltrigger - Batch Fade-In
       // Scrolltrigger - On Enter

@@ -11651,8 +11651,8 @@
           const showAnim = gsapWithCSS.from(nav, {
             yPercent: -100,
             paused: true,
-            duration: 0.5,
-            ease: "Power1.out"
+            duration: 1,
+            ease: "Power1.in"
           }).progress(1);
           ScrollTrigger3.create({
             start: "top top",
@@ -11767,6 +11767,7 @@
             const teaserIcon = el.querySelector('[cs-el="teaser-icon"]');
             const hover = gsapWithCSS.timeline().pause();
             const teaserBG = el.querySelector('[cs-el="teaser-bg"]');
+            const teaserIsClick = el?.getAttribute("cs-click");
             if (teaserSummary) {
               const summaryHeight = teaserSummary.offsetHeight;
               gsapWithCSS.set(teaserSummary, { opacity: 0 });
@@ -11791,8 +11792,21 @@
                 "<"
               );
             }
-            el.addEventListener("mouseenter", () => hover.timeScale(1).play());
-            el.addEventListener("mouseleave", () => hover.timeScale(1.75).reverse());
+            console.log(teaserIsClick);
+            if (!teaserIsClick) {
+              el.addEventListener("mouseenter", () => hover.timeScale(1).play());
+              el.addEventListener("mouseleave", () => hover.timeScale(1.75).reverse());
+            } else {
+              el.addEventListener("click", function() {
+                if (!el.dataset.clicked) {
+                  hover.timeScale(1).play();
+                  el.setAttribute("data-clicked", "true");
+                } else {
+                  el.removeAttribute("data-clicked");
+                  hover.timeScale(1.75).reverse();
+                }
+              });
+            }
           });
         }
         const pageHeroBG = document.querySelector('[cs-el="hero"]');
@@ -11876,8 +11890,8 @@
             const targetElement = el;
             const triggerElement = targetElement;
             gsapWithCSS.from(targetElement, {
-              width: "85%",
-              borderRadius: "5rem",
+              width: "95%",
+              borderRadius: "6rem",
               scrollTrigger: {
                 trigger: triggerElement,
                 start: "top bottom",
@@ -11903,6 +11917,7 @@
         if (batchElms) {
           ScrollTrigger3.batch(batchElms, {
             onEnter: (batch) => gsapWithCSS.to(batch, { y: "0px", autoAlpha: 1, duration: 1, stagger: 0.1 })
+            //onEnter: (batch) => gsap.to(batch, { y: '0px', autoAlpha: 1, duration: 1, stagger: 0.1 }),
           });
         }
         if (document.querySelector('[cs-st="enter"]')) {
