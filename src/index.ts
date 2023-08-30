@@ -649,7 +649,7 @@ window.Webflow.push(() => {
               //console.log(slidesCount);
               let count = 0;
               const fadeTime = 1.5;
-              const turnTime = 7;
+              const turnTime = 9;
 
               gsap.set(slides, { opacity: 0 });
               gsap.set(slides[0], { opacity: 1 });
