@@ -15,8 +15,8 @@ dependencies:
     specifier: ^2.3.7
     version: 2.3.7
   gsap:
-    specifier: npm:@gsap/shockingly@^3.12.1
-    version: /@gsap/shockingly@3.12.1
+    specifier: npm:@gsap/shockingly@^3.12.2
+    version: /@gsap/shockingly@3.12.2
 
 devDependencies:
   '@changesets/changelog-git':
@@ -548,8 +548,8 @@ packages:
       typescript: 5.1.3
     dev: true
 
-  /@gsap/shockingly@3.12.1:
-    resolution: {integrity: sha512-ldpVQV7dL40Al4h2BjS7C/3vLTI7kglqCePnWOOGGSCmCcbqRh/h5H5wKArho4FX3zN3f4mvkODZiLd9j9ZqzQ==}
+  /@gsap/shockingly@3.12.2:
+    resolution: {integrity: sha512-kYmkwAQ53GzBxs+e8pu/BCzUMrfJoBSEE1JI5HB6wUGDt9yuR/XTwSNfRCBzbuzy/zR9HgqubZnU59LhOiOzwA==}
     dev: false
 
   /@humanwhocodes/config-array@0.11.10:
