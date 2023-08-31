@@ -55,7 +55,7 @@
     "@finsweet/ts-utils": "^0.39.2",
     "@splidejs/splide": "^4.1.4",
     "fitty": "^2.3.7",
-    "gsap": "npm:@gsap/shockingly@^3.12.1"
+    "gsap": "npm:@gsap/shockingly@^3.12.2"
   },
   "engines": {
     "pnpm": ">=8"
